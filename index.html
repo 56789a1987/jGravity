@@ -4,33 +4,6 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>jGravity Demo</title>
 
-<!-- jQuery *Required -->
-<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
-<!-- jGravity file -->
-<script type="text/javascript" src="jGravity.js"></script>
-
-<script>
-$(document).ready(() => {
-	$('div.jGravity').on('click', () => { // This can be changed to anything you like in order to trigger jGravity effect
-		$('body').jGravity({ // jGravity works best when targeting the body
-			target: 'everything', // Enter your target critera e.g. 'div, p, span', 'h2' or 'div#specificDiv', or even 'everything' to target everything in the body
-			ignoreClass: 'ignoreMe', // Specify if you would like to use an ignore class, and then specify the class
-			weight: 25, // Enter any number 1-100 ideally (25 is default), you can also use 'heavy' or 'light'
-			depth: 5, // Enter a value between 1-10 ideally (1 is default), this is used to prevent targeting structural divs or other items which may break layout in jGravity
-			drag: true // Decide if users can drag elements which have been effected by jGravity
-		});
-
-		// Misc code for demo purposes
-		$(this).removeClass('jGravity');
-		$(this).delay(1000).queue(() => {
-			$(this).html("<h2><a href='http://tinybigideas.com/plugins/jquery-gravity/'>Get jGravity</a></h2>");
-		});
-		// ----- \\
-
-	});
-});
-</script>
-
 <style>
 /* Misc styles used for demo purposes */
 body {overflow:hidden; margin:0; padding:0; height:100%;}
@@ -110,6 +83,28 @@ div.duckCentre {width:100%; clear:both; height: 500px; margin:20px 0;}
    </div>
 </div>
 
+<!-- jGravity file -->
+<script type="text/javascript" src="jGravity.js"></script>
+
+<script>
+var gravity = null;
+
+document.querySelector('div.jGravity').addEventListener('click', () => { // This can be changed to anything you like in order to trigger jGravity effect
+	if (!gravity) {
+		gravity = jGravity({ // jGravity works best when targeting the body
+			target: 'everything', // Enter your target critera e.g. 'div, p, span', 'h2' or 'div#specificDiv', or even 'everything' to target everything in the body
+			ignoreClass: 'ignoreMe', // Specify if you would like to use an ignore class, and then specify the class
+			weight: 25, // Enter any number 1-100 ideally (25 is default), you can also use 'heavy' or 'light'
+			depth: 5, // Enter a value between 1-10 ideally (1 is default), this is used to prevent targeting structural divs or other items which may break layout in jGravity
+			drag: true // Decide if users can drag elements which have been effected by jGravity
+		});
+	} else {
+		gravity.stop();
+		gravity = null;
+	}
+	document.querySelector("div.jGravity h2").innerHTML = gravity ? "Stop jGravity" : "Initiate jGravity";
+});
+</script>
 
 </body>
 </html>
