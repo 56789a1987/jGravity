@@ -107,10 +107,10 @@ function jGravity(options) {
 	var stage = [window.screenX, window.screenY, window.innerWidth, window.innerHeight];
 	var isRunning = false;
 	var isMouseDown = false;
-	var iterations = 1;
-	var timeStep = 1 / 25;
+	var timeStep = 1 / 50;
+	var lastStep = 0;
 	var walls = new Array();
-	var wall_thickness = 200;
+	var wall_thickness = 2000;
 	var wallsSetted = false;
 	var mouseX = 0;
 	var mouseY = 0;
@@ -119,7 +119,7 @@ function jGravity(options) {
 	var elements = new Array();
 	var bodies = new Array();
 	var properties = new Array();
-	var orientation = { x: 0, y: 1 };
+	var orientation = { x: 0, y: o.weight / 10 };
 
 	// get browser dimensions
 	getBrowserDimensions();
@@ -179,11 +179,11 @@ function jGravity(options) {
 	// run()
 	function run() {
 		isRunning = true;
-		timer = setInterval(loop, o.weight); // weight setting
+		timer = requestAnimationFrame(loop);
 	}
 
 	function stop() {
-		clearInterval(timer);
+		cancelAnimationFrame(timer);
 
 		document.removeEventListener("mousedown", onDocumentMouseDown);
 		document.removeEventListener("mouseup", onDocumentMouseUp);
@@ -258,26 +258,30 @@ function jGravity(options) {
 	}
 
 	function isMinimized() {
-		return document.hidden || window.screenX < -30000 && window.screenY < -30000;
+		return document.visibilityState != 'visible' || window.screenX < -30000 && window.screenY < -30000;
 	}
 
 	// loop()
-	function loop() {
-		if (isMinimized()) {
+	function loop(now) {
+		if (isMinimized() || lastStep == 0) {
+			lastStep = now;
+			timer = requestAnimationFrame(loop);
 			return;
 		}
 
 		if (getBrowserDimensions())
 			setWalls();
+		
+		var d = now - lastStep;
 
-		delta[0] += (0 - delta[0]) * .5;
-		delta[1] += (0 - delta[1]) * .5;
+		delta[0] *= .5;
+		delta[1] *= .5;
 
 		world.m_gravity.x = orientation.x * 350 + delta[0];
 		world.m_gravity.y = orientation.y * 350 + delta[1];
 
 		mouseDrag();
-		world.Step(timeStep, iterations);
+		world.Step(timeStep, d);
 
 		for (i = 0; i < elements.length; i++) {
 
@@ -293,6 +297,9 @@ function jGravity(options) {
 			element.style.MozTransform = rotationStyle;
 			element.style.OTransform = rotationStyle;
 		}
+
+		lastStep = now;
+		timer = requestAnimationFrame(loop);
 	}
 
 	// createBox()
@@ -407,6 +414,18 @@ function jGravity(options) {
 		walls[2] = createBox(world, - wall_thickness, stage[3] / 2, wall_thickness, stage[3]);
 		walls[3] = createBox(world, stage[2] + wall_thickness, stage[3] / 2, wall_thickness, stage[3]);
 
+		for (i = 0; i < bodies.length; i++) {
+			var body = bodies[i];
+			
+			if (body.m_position.x > stage[2]) {
+				body.m_position.x = stage[2];
+			}
+
+			if (body.m_position.y > stage[3]) {
+				body.m_position.y = stage[3];
+			}
+		}
+
 		wallsSetted = true;
 	}
 
@@ -434,25 +453,30 @@ function jGravity(options) {
 			return false;
 		}
 
-		if (stage[0] != window.screenX) {
-			delta[0] = (window.screenX - stage[0]) * 50;
-			stage[0] = window.screenX;
+		var x = window.screenX;
+		var y = window.screenY;
+		var w = window.innerWidth;
+		var h = window.innerHeight;
+
+		if (stage[0] != x) {
+			delta[0] = (x - stage[0]) * 150;
+			stage[0] = x;
 			changed = true;
 		}
 
-		if (stage[1] != window.screenY) {
-			delta[1] = (window.screenY - stage[1]) * 50;
-			stage[1] = window.screenY;
+		if (stage[1] != y) {
+			delta[1] = (y - stage[1]) * 150 * orientation.y;
+			stage[1] = y;
 			changed = true;
 		}
 
-		if (stage[2] != window.innerWidth) {
-			stage[2] = window.innerWidth;
+		if (stage[2] != w) {
+			stage[2] = w;
 			changed = true;
 		}
 
-		if (stage[3] != window.innerHeight) {
-			stage[3] = window.innerHeight;
+		if (stage[3] != h) {
+			stage[3] = h;
 			changed = true;
 		}
 
